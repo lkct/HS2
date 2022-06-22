@@ -9,6 +9,8 @@ notebooks/results/*
 *.npy
 tests/results/*
 
+herdingspikes/probe_info/*_spikeextractor
+
 # For macOS
 *.DS_Store
 
