@@ -89,6 +89,7 @@ def detectData(probe, file_name, to_localize, sf, thres,
     print("# tcuts: " + str(tCut) + " "+ str(tCut2) )
 
     tInc = min(nFrames-tCut-tCut2, tInc) # cap at specified number of frames
+    tCut = 2048
     maxFramesProcessed = tInc;
     print('# tInc: '+str(tInc))
     # ! To be consistent, X and Y have to be swappped
