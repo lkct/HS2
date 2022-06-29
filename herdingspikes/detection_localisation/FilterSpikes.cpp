@@ -119,7 +119,7 @@ void filterAllNeighbors(Spike max_spike, ofstream& filteredsp) {
 		curr_channel = it->channel;
 		curr_amp = it->amplitude;
     curr_frame = it->frame;
-    if(areNeighbors(max_spike.channel, curr_channel)) {
+    if(areNeighbors(max_spike.channel, curr_channel) && curr_frame <= max_spike.frame + Parameters::noise_duration) {
         if(curr_amp < max_spike.amplitude) {
             if(Parameters::verbose) {
                 filteredsp << curr_spike.channel << " " << curr_spike.frame <<  " " << curr_spike.amplitude << "  " << endl;
