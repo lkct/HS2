@@ -19,8 +19,8 @@ void Detection::InitDetection(long nFrames, int sf, int NCh,
   Slice = new int[NChannels];
 
   Sampling = sf;
-  Aglobal = new int[tInc];
-  for (int i = 0; i < tInc; i++)
+  Aglobal = new int[tInc+2048];
+  for (int i = 0; i < tInc+2048; i++)
     Aglobal[i] = agl;
   for (int i = 0; i < NChannels; i++) {
     Qd[i] = 400;
@@ -116,7 +116,7 @@ void Detection::MeanVoltage(short *vm, int tInc,
   int n;
   int Vsum;
 
-  for (int t = tCut; t < tInc + tCut; t++) {
+  for (int t = 0; t < tInc + tCut; t++) {
     n = 1; // constant offset doesn't matter, avoid zero division
     Vsum = 0;
     for (int i = 0; i < NChannels; i++) { // loop across channels
@@ -125,7 +125,7 @@ void Detection::MeanVoltage(short *vm, int tInc,
           n++;
       }
     }
-    Aglobal[t - tCut] = Vsum / n;
+    Aglobal[t] = Vsum / n;
   }
 }
 
@@ -144,7 +144,7 @@ void Detection::Iterate(short *vm, long t0, int tInc, int tCut, int tCut2, int m
     for (i = 0; i < NChannels; i++) { // loop across channels
                                       // CHANNEL OUT OF LINEAR REGIME) {
       if (masked_channels[i] != 0) {
-        a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
+        a = (vm[i + t * NChannels] - Aglobal[t]) * Ascale -
             Qm[i]; // difference between ADC counts and Qm
         // UPDATE Qm and Qd
         if (a > 0) {
@@ -163,8 +163,7 @@ void Detection::Iterate(short *vm, long t0, int tInc, int tCut, int tCut2, int m
         }
         Qms[i][currQmsPosition % (MaxSl + Parameters::spike_peak_duration)] = Qm[i];
 
-        a = (vm[i + t * NChannels] - Aglobal[t - tCut]) * Ascale -
-            Qm[i]; // should tCut be subtracted here?? // this is correct now
+        a = (vm[i + t * NChannels] - Aglobal[t]) * Ascale - Qm[i];
         // TREATMENT OF THRESHOLD CROSSINGS
         if (Sl[i] > 0) {                     // Sl frames after peak value
           Sl[i] = (Sl[i] + 1) % (MaxSl + 1); // increment Sl[i]
@@ -182,15 +181,15 @@ void Detection::Iterate(short *vm, long t0, int tInc, int tCut, int tCut2, int m
               // increase spike count
               spikeCount += 1;
 
-              if (t - tCut - MaxSl + 1 > 0) {
+              // if (t - MaxSl + 1 > 0) {
                 SpikeHandler::setLocalizationParameters(
-                    Aglobal[t - tCut - MaxSl + 1], Qms,
+                    Aglobal[t - MaxSl + 1], Qms,
                     (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
-              } else {
-                SpikeHandler::setLocalizationParameters(
-                    Aglobal[t - tCut], Qms,
-                    (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
-              }
+              // } else {
+              //   SpikeHandler::setLocalizationParameters(
+              //       Aglobal[t], Qms,
+              //       (currQmsPosition + 1) % (MaxSl + Parameters::spike_peak_duration));
+              // }
               if (write_out) {
                 spikes_file << ChInd[i] << " " << t0 - MaxSl + t - tCut + 1
                             << " " << Amp[i] << endl;
