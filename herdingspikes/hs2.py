@@ -553,7 +553,7 @@ class HSClustering(object):
         _pca.fit(np.asarray(s))
 
         print("...projecting...")
-        _pcs = np.empty((n_spikes, pca_ncomponents))
+        _pcs = np.empty((n_spikes, pca_ncomponents))  # TODO:??? what if custom_decomposition
         for i in range(n_spikes // chunk_size + 1):
             # is this the best way? Warning: Pandas slicing with .loc is different!
             s = self.spikes.Shape.loc[
